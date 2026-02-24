@@ -30,6 +30,7 @@
         <a href="{{ url('/profile') }}" class="text-black-600 mx-2 sm:mx-4 capitalize tracking-wide hover:text-orange-500 transition-all">Profil</a>
         <form method="POST" action="{{ url('/logout') }}">
           @csrf
+          @method('DELETE')
           <x-button-outline type="submit">Logout</x-button-outline>
         </form>
       @else

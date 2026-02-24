@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\SessionsController;
 use App\Http\Controllers\Auth\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,10 +11,18 @@ Route::view('/', 'welcome');
 
 
 // Auth
-Route::get('/register', [UserController::class, 'create'])->name('register');
-Route::post('/register', [UserController::class, 'store'])->name('register.store');
-// Route::view('/login', '');
-//
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [UserController::class, 'create'])->name('register');
+    Route::post('/register', [UserController::class, 'store'])->name('register.store');
+
+    Route::get('/login', [SessionsController::class, 'create'])->name('login');
+    Route::post('/login', [SessionsController::class, 'store'])->name('login.store');
+});
+
+// LOGOUT
+Route::delete('/logout', [SessionsController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('logout');
 
 // App
 Route::view('/dashboard', 'dashboard.index');
