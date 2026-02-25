@@ -3,7 +3,7 @@
     <div class="grid gap-10 lg:grid-cols-12">
       <div class="lg:col-span-5">
         <div class="flex items-center gap-3">
-          <img src="{{ asset('assets/Logo.svg') }}" alt="EasyColoc" class="h-8 w-auto" />
+          <img src="{{ asset('favicon/favicon-96x96.png') }}" alt="EasyColoc" class="h-8 w-auto" />
           <div>
             <div class="text-black-600 font-semibold">EasyColoc</div>
             <div class="text-sm text-black-500">Plateforme Web de Gestion de Colocation</div>

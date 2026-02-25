@@ -2,7 +2,7 @@
   <nav class="max-w-screen-xl px-6 sm:px-8 lg:px-16 mx-auto grid grid-flow-col py-3 sm:py-4 items-center">
     <div class="col-start-1 col-end-3 flex items-center gap-3">
       <a href="{{ url('/') }}" class="flex items-center gap-3">
-        <img src="{{ asset('assets/Logo.svg') }}" alt="EasyColoc" class="h-8 w-auto" />
+        <img src="{{ asset('favicon/favicon-96x96.png') }}" alt="EasyColoc" class="h-8 w-auto" />
         <span class="text-black-600 font-semibold tracking-wide hidden sm:inline">EasyColoc</span>
       </a>
     </div>
@@ -15,7 +15,7 @@
         <li><a href="{{ url('/settlements') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Qui doit à qui</a></li>
         <li><a href="{{ url('/categories') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Catégories</a></li>
         <li>
-          {{-- Show only for Global Admin (gate/policy) --}}
+
           <a href="{{ url('/admin') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Admin</a>
         </li>
       @else
