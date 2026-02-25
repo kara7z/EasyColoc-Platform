@@ -43,13 +43,15 @@
             @endif
         </div>
 
-        <div class="flex items-center gap-3">
-            <button class="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
-                Save
-            </button>
+        <div class="flex items-center gap-4">
+             <button type="submit"
+             class="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white
+               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+              Save
+             </button>
 
             @if (session('status') === 'profile-updated')
-                <p class="text-sm text-gray-600">Saved.</p>
+                <p class="text-sm text-green-700">Saved.</p>
             @endif
         </div>
     </form>
