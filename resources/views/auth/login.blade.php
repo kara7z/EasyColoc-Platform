@@ -8,16 +8,11 @@
       <h1 class="text-2xl font-bold text-black-600">Se connecter</h1>
       <p class="mt-1 text-sm">Accédez à votre colocation et à vos soldes.</p>
 
-      {{-- Errors --}}
-      @if ($errors->any())
-        <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          <ul class="list-disc pl-5 space-y-1">
-            @foreach ($errors->all() as $error)
-              <li>{{ $error }}</li>
-            @endforeach
-          </ul>
-        </div>
-      @endif
+     @if ($errors->has('banned'))
+         <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+           {{ $errors->first('banned') }}
+         </div>
+     @endif
 
       <form method="POST" action="{{ url('/login') }}" class="mt-5 space-y-4">
         @csrf

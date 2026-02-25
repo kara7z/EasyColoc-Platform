@@ -36,7 +36,7 @@ class SessionsController extends Controller
             $request->session()->regenerateToken();
 
             return back()
-                ->withErrors(['email' => 'Your account is banned.'])
+                ->withErrors(['banned' => 'Your account is banned.'])
                 ->onlyInput('email');
         }
 
