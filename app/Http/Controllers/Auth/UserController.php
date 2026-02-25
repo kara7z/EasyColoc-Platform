@@ -16,19 +16,23 @@ class UserController extends Controller
         return view('auth.register');
     }
 
-     function store(Request $request)
+    function store(Request $request)
     {
         $validate = $request->validate([
-            'name' => ['required', 'string','min:3' ,'max:50'],
+            'name' => ['required', 'string', 'min:3', 'max:50'],
             'email' => ['required', 'string', 'max:255', 'email', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
+        $role = 'member';
+        if (User::count() === 0) $role = 'admin';
 
         $member = User::create([
             'name' => $validate['name'],
             'email' => $validate['email'],
             'password' => Hash::make($validate['password']),
-            'role' => 'member',
+            'role' => $role,
+            'isBanned' => false,
+            'isOwner' => false,
         ]);
 
         Auth::login($member);
