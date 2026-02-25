@@ -9,19 +9,21 @@
 
     <ul class="hidden lg:flex col-start-4 col-end-9 text-black-500 items-center justify-center">
       @auth
-        <li><a href="{{ url('/dashboard') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Dashboard</a></li>
-        <li><a href="{{ url('/colocations') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Colocations</a></li>
-        <li><a href="{{ url('/settlements') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Qui doit à qui</a></li>
-        <li><a href="{{ url('/categories') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Catégories</a></li>
-        <li>
+    <li><a href="{{ url('/dashboard') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Dashboard</a></li>
+    <li><a href="{{ url('/colocations') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Colocations</a></li>
+    <li><a href="{{ url('/settlements') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Qui doit à qui</a></li>
+    <li><a href="{{ url('/categories') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Catégories</a></li>
 
-          <a href="{{ url('/admin') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Admin</a>
+    @if(auth()->user()?->is_admin)
+        <li>
+            <a href="{{ url('/admin') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Admin</a>
         </li>
-      @else
+    @endif
+    @else
         <li><a href="#features" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Fonctionnalités</a></li>
         <li><a href="#how" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Comment ça marche</a></li>
         <li><a href="#pricing" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Simple & gratuit</a></li>
-      @endauth
+    @endauth
     </ul>
 
     <div class="col-start-10 col-end-13 font-medium flex justify-end items-center gap-2">
