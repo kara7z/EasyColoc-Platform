@@ -31,8 +31,7 @@ class UserController extends Controller
             'email' => $validate['email'],
             'password' => Hash::make($validate['password']),
             'role' => $role,
-            'isBanned' => false,
-            'isOwner' => false,
+
         ]);
 
         Auth::login($member);

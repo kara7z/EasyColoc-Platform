@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->string('role');
-            $table->boolean('isBanned');
-            $table->boolean('isOwner');
+            $table->boolean('isBanned')->default(false);
+            $table->boolean('isOwner')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

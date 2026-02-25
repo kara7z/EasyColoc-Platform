@@ -30,11 +30,17 @@ class SessionsController extends Controller
 
         $request->session()->regenerate();
 
-        // $user = $request->user();
-        // $role = $user->role ?? 'passenger';
+        if (Auth::user()->isBanned) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-        $fallback = '/';
-        return redirect()->intended($fallback);
+            return back()
+                ->withErrors(['email' => 'Your account is banned.'])
+                ->onlyInput('email');
+        }
+
+        return redirect()->intended('/');
     }
 
     public function destroy(Request $request)
