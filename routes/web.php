@@ -6,9 +6,8 @@ use App\Http\Controllers\Auth\SessionsController;
 use App\Http\Controllers\Auth\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/ui', 'preview');
 
-Route::view('/', 'welcome');
+Route::view('/', 'index');
 // Auth
 Route::middleware('guest')->group(function () {
     Route::get('/register', [UserController::class, 'create'])->name('register');

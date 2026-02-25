@@ -10,7 +10,6 @@
     <ul class="hidden lg:flex col-start-4 col-end-9 text-black-500 items-center justify-center">
       @auth
         <li><a href="{{ url('/dashboard') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Dashboard</a></li>
-        <li><a href="{{ url('/ui') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">UI</a></li>
         <li><a href="{{ url('/colocations') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Colocations</a></li>
         <li><a href="{{ url('/settlements') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Qui doit à qui</a></li>
         <li><a href="{{ url('/categories') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Catégories</a></li>
