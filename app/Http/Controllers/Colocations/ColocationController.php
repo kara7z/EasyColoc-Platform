@@ -66,6 +66,29 @@ class ColocationController extends Controller
 
         return redirect()->route('colocations.index');
     }
+    function cancel(Request $request, Colocation $colocation)
+    {
+        $userId = $request->user()->id;
+
+        $isOwner = $colocation->memberships()
+            ->where('user_id', $userId)
+            ->whereNull('left_at')
+            ->where('role', 'owner')
+            ->exists();
+
+        if (!$isOwner) abort(403);
+
+        $colocation->update([
+            'status' => 'cancelled',
+        ]);
+
+        $colocation->memberships()
+            ->whereNull('left_at')
+            ->update(['left_at' => now()]);
+
+        return redirect()->route('colocations.index')
+            ->with('status', 'Colocation annulée.');
+    }
     function show(Colocation $colocation)
     {
         $userId = request()->user()->id;

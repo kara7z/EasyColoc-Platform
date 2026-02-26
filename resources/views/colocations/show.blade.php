@@ -3,22 +3,43 @@
 @section('title', 'Détails colocation — EasyColoc')
 
 @section('content')
+@php
+  $isOwner = $colocation->members()
+    ->where('users.id', auth()->id())
+    ->wherePivot('role', 'owner')
+    ->wherePivotNull('left_at')
+    ->exists();
+@endphp
+
   <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-black-600">{{ $colocation['name'] ?? 'Ma colocation' }}</h1>
+      <h1 class="text-2xl font-bold text-black-600">{{ $colocation?->name ?? 'Ma colocation' }}</h1>
       <div class="mt-2 flex flex-wrap items-center gap-2">
-        <x-badge>{{ $colocation['status'] ?? 'active' }}</x-badge>
-        <span class="text-sm">Créée le: {{ $colocation['created_at'] ?? '—' }}</span>
+        <x-badge>{{ $colocation?->status ?? 'active' }}</x-badge>
+        <span class="text-sm">Créée le: {{ optional($colocation?->created_at)->format('Y-m-d') ?? '—' }}</span>
       </div>
     </div>
+
     <div class="flex flex-wrap gap-3">
-      <a href="{{ url('/colocations/' . ($colocation['id'] ?? 1) . '/expenses/create') }}"><x-button-primary>Ajouter dépense</x-button-primary></a>
-      <a href="{{ url('/colocations/' . ($colocation['id'] ?? 1) . '/invitations/create') }}"><x-button-outline>Inviter</x-button-outline></a>
-      <form method="POST" action="{{ url('/colocations/' . ($colocation['id'] ?? 1) . '/cancel') }}">
-        @csrf
-        @method('PATCH')
-        <x-button-outline type="submit" class="border-gray-400 text-black-600 hover:border-orange-500">Annuler colocation</x-button-outline>
-      </form>
+      <a href="{{ url('/colocations/' . $colocation->id . '/expenses/create') }}">
+        <x-button-primary>Ajouter dépense</x-button-primary>
+      </a>
+
+      @if($isOwner)
+        <a href="{{ url('/colocations/' . $colocation->id . '/invitations/create') }}">
+          <x-button-outline>Inviter</x-button-outline>
+        </a>
+
+        @if(($colocation?->status ?? 'active') !== 'cancelled')
+          <form method="POST" action="{{ route('colocations.cancel', $colocation) }}">
+            @csrf
+            @method('PATCH')
+            <x-button-outline type="submit" class="border-gray-400 text-black-600 hover:border-orange-500">
+              Annuler colocation
+            </x-button-outline>
+          </form>
+        @endif
+      @endif
     </div>
   </div>
 
@@ -26,7 +47,7 @@
     <x-card class="p-6 lg:col-span-2">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold text-black-600">Dépenses (filtre par mois)</h2>
-        <a class="text-orange-500 hover:underline text-sm" href="{{ url('/colocations/' . ($colocation['id'] ?? 1) . '/expenses') }}">Tout voir</a>
+        <a class="text-orange-500 hover:underline text-sm" href="{{ url('/colocations/' . $colocation->id . '/expenses') }}">Tout voir</a>
       </div>
 
       <form method="GET" action="#" class="mt-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
@@ -102,7 +123,12 @@
   <div id="members" class="mt-10">
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-semibold text-black-600">Gestion des membres</h2>
-      <a href="{{ url('/colocations/' . ($colocation['id'] ?? 1) . '/invitations/create') }}" class="text-orange-500 hover:underline">Envoyer invitation</a>
+
+      @if($isOwner)
+        <a href="{{ url('/colocations/' . $colocation->id . '/invitations/create') }}" class="text-orange-500 hover:underline">
+          Envoyer invitation
+        </a>
+      @endif
     </div>
 
     <div class="mt-4 overflow-x-auto">
@@ -126,13 +152,17 @@
               <td class="py-2"><x-badge>{{ $m['role'] ?? 'Member' }}</x-badge></td>
               <td class="py-2">{{ $m['reputation'] ?? 0 }}</td>
               <td class="py-2">{{ $m['joined_at'] ?? '—' }}</td>
+
               <td class="py-2 text-right">
-                {{-- Owner can remove member (except owner). Debt-transfer rule handled in backend. --}}
-                <form method="POST" action="{{ url('/colocations/' . ($colocation['id'] ?? 1) . '/members/' . ($m['id'] ?? 1)) }}">
-                  @csrf
-                  @method('DELETE')
-                  <button class="text-orange-500 hover:underline">Retirer</button>
-                </form>
+                @if($isOwner && (($m['role'] ?? 'member') !== 'owner'))
+                  <form method="POST" action="{{ url('/colocations/' . $colocation->id . '/members/' . ($m['id'] ?? 1)) }}">
+                    @csrf
+                    @method('DELETE')
+                    <button class="text-orange-500 hover:underline">Retirer</button>
+                  </form>
+                @else
+                  <span class="text-xs text-gray-400">—</span>
+                @endif
               </td>
             </tr>
           @empty
