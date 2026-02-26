@@ -19,8 +19,8 @@ class UserController extends Controller
     function store(Request $request)
     {
         $validate = $request->validate([
-            'name' => ['required', 'string', 'min:3', 'max:50'],
-            'email' => ['required', 'string', 'max:255', 'email', 'unique:users,email'],
+            'name' => ['required', 'string', 'min:4', 'max:50'],
+            'email' => ['required', 'string', 'max:256', 'email', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
         $isAdmin = false;

@@ -15,7 +15,7 @@ class AdminMiddleware
             return redirect()->route('login');
         }
 
-        if (!$user->is_admin) {
+        if (!$user->isAdmin) {
             abort(403, 'Admin access only.');
         }
 

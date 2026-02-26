@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->boolean('isBanned')->default(false);
-            $table->integer('reputation')->default(0);
+            $table->integer('reputation')->default(1);
             $table->boolean('isAdmin');
             $table->rememberToken();
             $table->timestamps();
