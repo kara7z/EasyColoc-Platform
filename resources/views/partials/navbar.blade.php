@@ -14,7 +14,7 @@
     <li><a href="{{ url('/settlements') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Qui doit à qui</a></li>
     <li><a href="{{ url('/categories') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Catégories</a></li>
 
-    @if(auth()->user()?->isAdmin)
+    @if(auth()->user()->isAdmin())
         <li>
             <a href="{{ url('/admin') }}" class="px-4 py-2 mx-2 cursor-pointer animation-hover inline-block relative hover:text-orange-500">Admin</a>
         </li>

@@ -59,4 +59,8 @@ class User extends Authenticatable
             ->withPivot('role', 'joined_at', 'left_at')
             ->withTimestamps();
     }
+    public function isAdmin(): bool
+    {
+        return (bool) $this->isAdmin;
+    }
 }
