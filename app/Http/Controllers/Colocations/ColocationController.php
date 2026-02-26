@@ -9,20 +9,22 @@ use Illuminate\Http\Request;
 
 class ColocationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $userId = request()->user()->id;
+        $userId = request()->user()->id;;
 
-        $activeColocation = Colocation::whereHas('memberships', function ($q) use ($userId) {
-            $q->where('user_id', $userId)->whereNull('left_at');
-        })
+        $activeColocation = Colocation::query()
             ->where('status', 'active')
+            ->whereHas('memberships', function ($q) use ($userId) {
+                $q->where('user_id', $userId)->whereNull('left_at');
+            })
             ->latest()
             ->first();
 
-        $colocations = Colocation::whereHas('memberships', function ($q) use ($userId) {
-            $q->where('user_id', $userId);
-        })
+        $colocations = Colocation::query()
+            ->whereHas('memberships', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
             ->latest()
             ->get();
 
@@ -32,7 +34,7 @@ class ColocationController extends Controller
     {
         return view('colocations.create');
     }
-    public function store(Request $request)
+    function store(Request $request)
     {
         $validated = $request->validate([
             'name' => ['required', 'min:4', 'string', 'max:20'],
@@ -63,5 +65,37 @@ class ColocationController extends Controller
         ]);
 
         return redirect()->route('colocations.index');
+    }
+    function show(Colocation $colocation)
+    {
+        $userId = request()->user()->id;
+
+
+        $isMember = $colocation->memberships()
+            ->where('user_id', $userId)
+            ->whereNull('left_at')
+            ->exists();
+
+        if (!$isMember) abort(403);
+
+
+        $members = $colocation->members()
+            ->wherePivotNull('left_at')
+            ->get()
+            ->map(function ($u) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'email' => $u->email,
+                    'role' => $u->pivot->role,
+                    'reputation' => $u->reputation,
+                    'joined_at' => optional($u->pivot->joined_at)->format('Y-m-d'),
+                ];
+            });
+
+
+        $expenses = [];
+
+        return view('colocations.show', compact('colocation', 'members', 'expenses'));
     }
 }

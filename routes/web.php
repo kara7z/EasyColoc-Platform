@@ -29,8 +29,7 @@ Route::middleware(['auth', 'not_banned'])->group(function () {
     Route::post('/colocations', [ColocationController::class, 'store'])->name('colocations.store');
     Route::get('/colocations', [ColocationController::class, 'index'])->name('colocations.index');
     Route::view('/dashboard', 'dashboard.index');
-    Route::view('/colocations/{id}', 'colocations.show');
-
+    Route::get('/colocations/{colocation}', [ColocationController::class, 'show'])->name('colocations.show');
     Route::view('/colocations/{id}/expenses', 'expenses.index');
     Route::view('/colocations/{id}/expenses/create', 'expenses.create');
     Route::view('/expenses/{id}/edit', 'expenses.edit');

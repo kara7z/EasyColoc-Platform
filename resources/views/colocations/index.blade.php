@@ -6,7 +6,7 @@
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-bold text-black-600">Colocations</h1>
-      <p class="mt-1 text-sm">Une seule colocation active par utilisateur (selon vos règles).</p>
+      <p class="mt-1 text-sm">Une seule colocation active par utilisateur.</p>
     </div>
     <div class="flex gap-3">
       <a href="{{ url('/colocations/create') }}"><x-button-primary>Créer</x-button-primary></a>
@@ -52,7 +52,7 @@
   </div>
 
   <div class="mt-10">
-    <h2 class="text-lg font-semibold text-black-600">Historique (facultatif)</h2>
+    <h2 class="text-lg font-semibold text-black-600">Historique</h2>
     <div class="mt-4 overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
@@ -64,16 +64,18 @@
           </tr>
         </thead>
         <tbody>
-          @forelse(($colocations ?? []) as $c)
+        @forelse($colocations as $c)
             <tr class="border-b border-gray-100">
-              <td class="py-2 font-medium text-black-600">{{ $c['name'] ?? '—' }}</td>
-              <td class="py-2"><x-badge>{{ $c['status'] ?? 'active' }}</x-badge></td>
-              <td class="py-2">{{ $c['created_at'] ?? '—' }}</td>
-              <td class="py-2 text-right"><a class="text-orange-500 hover:underline" href="{{ url('/colocations/' . ($c['id'] ?? 1)) }}">Voir</a></td>
+                <td class="py-2 font-medium text-black-600">{{ $c->name }}</td>
+                <td class="py-2"><x-badge>{{ $c->status }}</x-badge></td>
+                <td class="py-2">{{ optional($c->created_at)->format('Y-m-d') }}</td>
+                <td class="py-2 text-right">
+                    <a class="text-orange-500 hover:underline" href="{{ route('colocations.show', $c) }}">Voir</a>
+                </td>
             </tr>
-          @empty
+        @empty
             <tr><td colspan="4" class="py-4 text-center">Aucune donnée.</td></tr>
-          @endforelse
+        @endforelse
         </tbody>
       </table>
     </div>
