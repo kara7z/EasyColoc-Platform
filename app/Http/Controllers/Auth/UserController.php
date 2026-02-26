@@ -23,14 +23,14 @@ class UserController extends Controller
             'email' => ['required', 'string', 'max:255', 'email', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
-        $role = 'member';
-        if (User::count() === 0) $role = 'admin';
+        $isAdmin = false;
+        if (User::count() === 0) $isAdmin = true;
 
         $member = User::create([
             'name' => $validate['name'],
             'email' => $validate['email'],
             'password' => Hash::make($validate['password']),
-            'role' => $role,
+            'isAdmin' => $isAdmin,
 
         ]);
 

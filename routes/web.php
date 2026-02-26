@@ -4,6 +4,8 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Auth\SessionsController;
 use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\Colocations\ColocationController;
+use App\Models\Colocation;
 use Illuminate\Support\Facades\Route;
 
 
@@ -22,7 +24,7 @@ Route::delete('/logout', [SessionsController::class, 'destroy'])
     ->name('logout');
 
 Route::middleware(['auth', 'not_banned'])->group(function () {
-
+    Route::get('/colocations', [ColocationController::class, 'index']);
     Route::view('/dashboard', 'dashboard.index');
 
     Route::view('/colocations', 'colocations.index');
