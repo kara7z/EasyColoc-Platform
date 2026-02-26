@@ -66,7 +66,7 @@ class ColocationController extends Controller
 
         return redirect()->route('colocations.index');
     }
-    function cancel(Request $request, Colocation $colocation)
+    public function cancel(Colocation $colocation, Request $request)
     {
         $userId = $request->user()->id;
 
@@ -76,13 +76,28 @@ class ColocationController extends Controller
             ->where('role', 'owner')
             ->exists();
 
-        if (!$isOwner) abort(403);
+        if (!$isOwner) {
+            abort(403, 'Owner only.');
+        }
+
+        $otherActiveMembers = $colocation->memberships()
+            ->whereNull('left_at')
+            ->where('user_id', '!=', $userId)
+            ->exists();
+
+        if ($otherActiveMembers) {
+            return back()->withErrors([
+                'cancel' => "Impossible d’annuler : vous n’êtes pas le seul membre actif. Retirez les autres membres d’abord."
+            ]);
+        }
 
         $colocation->update([
             'status' => 'cancelled',
+            'cancelled_at' => now(),
         ]);
 
         $colocation->memberships()
+            ->where('user_id', $userId)
             ->whereNull('left_at')
             ->update(['left_at' => now()]);
 
