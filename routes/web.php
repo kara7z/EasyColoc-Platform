@@ -24,11 +24,11 @@ Route::delete('/logout', [SessionsController::class, 'destroy'])
     ->name('logout');
 
 Route::middleware(['auth', 'not_banned'])->group(function () {
-    Route::get('/colocations', [ColocationController::class, 'index']);
+    // colocations
+    Route::get('/colocations', [ColocationController::class, 'index'])->name('colocations');
+    Route::get('/colocations/create', [ColocationController::class, 'create'])->name('create.colocations');
+    Route::post('/colocations/create',[ColocationController::class,'store']);
     Route::view('/dashboard', 'dashboard.index');
-
-    Route::view('/colocations', 'colocations.index');
-    Route::view('/colocations/create', 'colocations.create');
     Route::view('/colocations/{id}', 'colocations.show');
 
     Route::view('/colocations/{id}/expenses', 'expenses.index');
@@ -44,7 +44,7 @@ Route::middleware(['auth', 'not_banned'])->group(function () {
     Route::view('/invite/{token}', 'invitations.accept');
 
     Route::view('/admin', 'admin.index');
-
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
