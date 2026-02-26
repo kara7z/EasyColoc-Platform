@@ -36,7 +36,7 @@
 
     <x-card class="p-6">
       <h2 class="text-lg font-semibold text-black-600">Créer rapidement</h2>
-      <form method="POST" action="{{ url('/colocations') }}" class="mt-4 space-y-3">
+      <form method="POST"action="{{ route('colocations.store') }}" class="mt-4 space-y-3">
         @csrf
         <div>
           <label class="block text-sm font-medium text-black-600">Nom</label>

@@ -25,9 +25,9 @@ Route::delete('/logout', [SessionsController::class, 'destroy'])
 
 Route::middleware(['auth', 'not_banned'])->group(function () {
     // colocations
-    Route::get('/colocations', [ColocationController::class, 'index'])->name('colocations');
-    Route::get('/colocations/create', [ColocationController::class, 'create'])->name('create.colocations');
-    Route::post('/colocations/create',[ColocationController::class,'store']);
+    Route::get('/colocations/create', [ColocationController::class, 'create'])->name('colocations.create');
+    Route::post('/colocations', [ColocationController::class, 'store'])->name('colocations.store');
+    Route::get('/colocations', [ColocationController::class, 'index'])->name('colocations.index');
     Route::view('/dashboard', 'dashboard.index');
     Route::view('/colocations/{id}', 'colocations.show');
 
