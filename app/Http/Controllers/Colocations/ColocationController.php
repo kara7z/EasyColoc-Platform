@@ -11,7 +11,7 @@ class ColocationController extends Controller
 {
     public function index(Request $request)
     {
-        $userId = request()->user()->id;;
+        $userId = $request->user()->id;
 
         $activeColocation = Colocation::query()
             ->where('status', 'active')
@@ -30,25 +30,31 @@ class ColocationController extends Controller
 
         return view('colocations.index', compact('activeColocation', 'colocations'));
     }
-    function create()
+
+    public function create()
     {
         return view('colocations.create');
     }
-    function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => ['required', 'min:4', 'string', 'max:20'],
-            'description' => ['nullable', 'string', 'min:6', 'max:300'],
-        ]);
 
-        $userId = request()->user()->id;
-        $alreadyActive = Membership::where('user_id', $userId)
+    public function store(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $alreadyActive = Membership::query()
+            ->where('user_id', $userId)
             ->whereNull('left_at')
             ->exists();
 
         if ($alreadyActive) {
-            return back()->withErrors(['name' => 'Vous avez déjà une colocation active.'])->withInput();
+            return back()->withErrors([
+                'name' => 'Vous avez déjà une colocation active.'
+            ])->withInput();
         }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'min:4', 'max:20'],
+            'description' => ['nullable', 'string', 'min:6', 'max:300'],
+        ]);
 
         $colocation = Colocation::create([
             'name' => $validated['name'],
@@ -62,21 +68,56 @@ class ColocationController extends Controller
             'colocation_id' => $colocation->id,
             'role' => 'owner',
             'joined_at' => now(),
+            'left_at' => null,
         ]);
 
         return redirect()->route('colocations.index');
     }
-    public function cancel(Colocation $colocation, Request $request)
+
+    public function show(Request $request, Colocation $colocation)
     {
         $userId = $request->user()->id;
 
-        $isOwner = $colocation->memberships()
+        $hasMembership = $colocation->memberships()
             ->where('user_id', $userId)
-            ->whereNull('left_at')
-            ->where('role', 'owner')
             ->exists();
 
-        if (!$isOwner) {
+        if (!$hasMembership) {
+            abort(403);
+        }
+
+        $isCancelled = ($colocation->status === 'cancelled');
+
+        $members = $colocation->members()
+            ->get()
+            ->map(function ($u) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'email' => $u->email,
+                    'role' => $u->pivot->role,
+                    'reputation' => $u->reputation,
+                    'joined_at' => optional($u->pivot->joined_at)->format('Y-m-d'),
+                    'left_at' => optional($u->pivot->left_at)->format('Y-m-d'),
+                ];
+            });
+
+        $expenses = collect([]);
+
+        return view('colocations.show', compact('colocation', 'members', 'expenses', 'isCancelled'));
+    }
+
+    public function cancel(Request $request, Colocation $colocation)
+    {
+        $userId = $request->user()->id;
+
+        $isOwnerActive = $colocation->memberships()
+            ->where('user_id', $userId)
+            ->where('role', 'owner')
+            ->whereNull('left_at')
+            ->exists();
+
+        if (!$isOwnerActive) {
             abort(403, 'Owner only.');
         }
 
@@ -91,6 +132,10 @@ class ColocationController extends Controller
             ]);
         }
 
+        if ($colocation->status === 'cancelled') {
+            return back();
+        }
+
         $colocation->update([
             'status' => 'cancelled',
             'cancelled_at' => now(),
@@ -103,37 +148,5 @@ class ColocationController extends Controller
 
         return redirect()->route('colocations.index')
             ->with('status', 'Colocation annulée.');
-    }
-    function show(Colocation $colocation)
-    {
-        $userId = request()->user()->id;
-
-
-        $isMember = $colocation->memberships()
-            ->where('user_id', $userId)
-            ->whereNull('left_at')
-            ->exists();
-
-        if (!$isMember) abort(403);
-
-
-        $members = $colocation->members()
-            ->wherePivotNull('left_at')
-            ->get()
-            ->map(function ($u) {
-                return [
-                    'id' => $u->id,
-                    'name' => $u->name,
-                    'email' => $u->email,
-                    'role' => $u->pivot->role,
-                    'reputation' => $u->reputation,
-                    'joined_at' => optional($u->pivot->joined_at)->format('Y-m-d'),
-                ];
-            });
-
-
-        $expenses = [];
-
-        return view('colocations.show', compact('colocation', 'members', 'expenses'));
     }
 }

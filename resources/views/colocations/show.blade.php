@@ -4,12 +4,19 @@
 
 @section('content')
 @php
-  $isOwner = $colocation->members()
-    ->where('users.id', auth()->id())
-    ->wherePivot('role', 'owner')
-    ->wherePivotNull('left_at')
+  $isCancelled = $isCancelled ?? ($colocation?->status === 'cancelled');
+
+  $isOwnerEver = $colocation->memberships()
+    ->where('user_id', request()->user()->id)
+    ->where('role', 'owner')
     ->exists();
 @endphp
+
+  @if ($errors->has('cancel'))
+    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+      {{ $errors->first('cancel') }}
+    </div>
+  @endif
 
   <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
     <div>
@@ -18,27 +25,33 @@
         <x-badge>{{ $colocation?->status ?? 'active' }}</x-badge>
         <span class="text-sm">Créée le: {{ optional($colocation?->created_at)->format('Y-m-d') ?? '—' }}</span>
       </div>
+
+      @if($isCancelled)
+        <div class="mt-3 text-sm text-gray-500">
+          Colocation annulée — mode lecture seule.
+        </div>
+      @endif
     </div>
 
     <div class="flex flex-wrap gap-3">
-      <a href="{{ url('/colocations/' . $colocation->id . '/expenses/create') }}">
-        <x-button-primary>Ajouter dépense</x-button-primary>
-      </a>
+      @if(!$isCancelled)
+        <a href="{{ url('/colocations/' . $colocation->id . '/expenses/create') }}">
+          <x-button-primary>Ajouter dépense</x-button-primary>
+        </a>
+      @endif
 
-      @if($isOwner)
+      @if($isOwnerEver && !$isCancelled)
         <a href="{{ url('/colocations/' . $colocation->id . '/invitations/create') }}">
           <x-button-outline>Inviter</x-button-outline>
         </a>
 
-        @if(($colocation?->status ?? 'active') !== 'cancelled')
-          <form method="POST" action="{{ route('colocations.cancel', $colocation) }}">
-            @csrf
-            @method('PATCH')
-            <x-button-outline type="submit" class="border-gray-400 text-black-600 hover:border-orange-500">
-              Annuler colocation
-            </x-button-outline>
-          </form>
-        @endif
+        <form method="POST" action="{{ route('colocations.cancel', $colocation) }}">
+          @csrf
+          @method('PATCH')
+          <x-button-outline type="submit" class="border-gray-400 text-black-600 hover:border-orange-500">
+            Annuler colocation
+          </x-button-outline>
+        </form>
       @endif
     </div>
   </div>
@@ -46,7 +59,7 @@
   <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
     <x-card class="p-6 lg:col-span-2">
       <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-black-600">Dépenses (filtre par mois)</h2>
+        <h2 class="text-lg font-semibold text-black-600">Dépenses</h2>
         <a class="text-orange-500 hover:underline text-sm" href="{{ url('/colocations/' . $colocation->id . '/expenses') }}">Tout voir</a>
       </div>
 
@@ -79,8 +92,13 @@
                 <td class="py-2">{{ $e['payer'] ?? '—' }}</td>
                 <td class="py-2">{{ $e['amount'] ?? '0.00' }}</td>
                 <td class="py-2">{{ $e['date'] ?? '—' }}</td>
+
                 <td class="py-2 text-right">
-                  <a class="text-orange-500 hover:underline" href="{{ url('/expenses/' . ($e['id'] ?? 1) . '/edit') }}">Edit</a>
+                  @if(!$isCancelled)
+                    <a class="text-orange-500 hover:underline" href="{{ url('/expenses/' . ($e['id'] ?? 1) . '/edit') }}">Edit</a>
+                  @else
+                    <span class="text-xs text-gray-400">—</span>
+                  @endif
                 </td>
               </tr>
             @empty
@@ -94,7 +112,7 @@
     <x-card class="p-6">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold text-black-600">Membres</h2>
-        <a class="text-orange-500 hover:underline text-sm" href="#members">Gérer</a>
+        <a class="text-orange-500 hover:underline text-sm" href="#members">Voir</a>
       </div>
 
       <div class="mt-4 space-y-3">
@@ -103,6 +121,13 @@
             <div>
               <div class="font-medium text-black-600">{{ $m['name'] ?? '—' }}</div>
               <div class="text-xs">{{ $m['email'] ?? '' }}</div>
+              <div class="text-xs text-gray-500">
+                @if(!empty($m['left_at']))
+                  Ancien membre (sorti le {{ $m['left_at'] }})
+                @else
+                  Membre actif
+                @endif
+              </div>
             </div>
             <div class="text-right">
               <x-badge>{{ $m['role'] ?? 'Member' }}</x-badge>
@@ -122,9 +147,9 @@
 
   <div id="members" class="mt-10">
     <div class="flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-black-600">Gestion des membres</h2>
+      <h2 class="text-lg font-semibold text-black-600">Historique des membres</h2>
 
-      @if($isOwner)
+      @if($isOwnerEver && !$isCancelled)
         <a href="{{ url('/colocations/' . $colocation->id . '/invitations/create') }}" class="text-orange-500 hover:underline">
           Envoyer invitation
         </a>
@@ -138,7 +163,8 @@
             <th class="py-2">Membre</th>
             <th class="py-2">Rôle</th>
             <th class="py-2">Réputation</th>
-            <th class="py-2">Actif depuis</th>
+            <th class="py-2">Entrée</th>
+            <th class="py-2">Sortie</th>
             <th class="py-2"></th>
           </tr>
         </thead>
@@ -152,9 +178,10 @@
               <td class="py-2"><x-badge>{{ $m['role'] ?? 'Member' }}</x-badge></td>
               <td class="py-2">{{ $m['reputation'] ?? 0 }}</td>
               <td class="py-2">{{ $m['joined_at'] ?? '—' }}</td>
+              <td class="py-2">{{ $m['left_at'] ?? '—' }}</td>
 
               <td class="py-2 text-right">
-                @if($isOwner && (($m['role'] ?? 'member') !== 'owner'))
+                @if($isOwnerEver && !$isCancelled && (($m['role'] ?? 'member') !== 'owner'))
                   <form method="POST" action="{{ url('/colocations/' . $colocation->id . '/members/' . ($m['id'] ?? 1)) }}">
                     @csrf
                     @method('DELETE')
@@ -166,7 +193,7 @@
               </td>
             </tr>
           @empty
-            <tr><td colspan="5" class="py-4 text-center">Aucun membre.</td></tr>
+            <tr><td colspan="6" class="py-4 text-center">Aucun membre.</td></tr>
           @endforelse
         </tbody>
       </table>
