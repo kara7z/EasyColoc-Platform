@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Membership extends Model
 {
-    protected $table = 'memberships';
+    use HasFactory;
 
     protected $fillable = [
         'user_id',
@@ -16,10 +17,13 @@ class Membership extends Model
         'left_at',
     ];
 
-    protected $casts = [
-        'joined_at' => 'datetime',
-        'left_at'   => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'joined_at' => 'datetime',
+            'left_at' => 'datetime',
+        ];
+    }
 
     public function user()
     {
@@ -29,5 +33,15 @@ class Membership extends Model
     public function colocation()
     {
         return $this->belongsTo(Colocation::class);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->left_at === null;
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === 'owner';
     }
 }
