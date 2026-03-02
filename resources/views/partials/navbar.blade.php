@@ -1,10 +1,19 @@
 <header class="fixed top-0 w-full z-30 bg-white-500 shadow-md">
   <nav class="max-w-screen-xl px-6 sm:px-8 lg:px-16 mx-auto grid grid-flow-col py-3 sm:py-4 items-center">
     <div class="col-start-1 col-end-3 flex items-center gap-3">
-      <a href="{{ url('/') }}" class="flex items-center gap-3">
+      @guest
+       <a href="{{ url('/') }}" class="flex items-center gap-3">
         <img src="{{ asset('favicon/favicon-96x96.png') }}" alt="EasyColoc" class="h-8 w-auto" />
         <span class="text-black-600 font-semibold tracking-wide hidden sm:inline">EasyColoc</span>
-      </a>
+       </a>
+      @endguest
+      @auth
+       <a href="{{ url('/dashboard') }}" class="flex items-center gap-3">
+        <img src="{{ asset('favicon/favicon-96x96.png') }}" alt="EasyColoc" class="h-8 w-auto" />
+        <span class="text-black-600 font-semibold tracking-wide hidden sm:inline">EasyColoc</span>
+       </a>
+      @endauth
+
     </div>
 
     <ul class="hidden lg:flex col-start-4 col-end-9 text-black-500 items-center justify-center">

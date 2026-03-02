@@ -3,7 +3,7 @@
 @section('title', 'EasyColoc — Gestion de colocation')
 
 @section('content')
-  <section class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center" id='features'>
     <div>
       <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-black-600 leading-tight">
         Gérez votre colocation <span class="text-orange-500">sans calculs manuels</span>.
@@ -18,7 +18,7 @@
         <a href="{{ url('/login') }}"><x-button-outline>Se connecter</x-button-outline></a>
       </div>
 
-      <ul class="mt-10 space-y-3 relative pl-6">
+      <ul class="mt-10 space-y-3 relative pl-6" >
         <li class="relative custom-list circle-check">Invitations par lien/token (email)</li>
         <li class="relative custom-list circle-check">Dépenses & catégories, filtre par mois</li>
         <li class="relative custom-list circle-check">Remboursements simplifiés + « Marquer payé »</li>
@@ -31,7 +31,7 @@
     </div>
   </section>
 
-  <section id="features" class="mt-16">
+  <section  class="mt-16">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <x-card class="p-6">
         <div class="text-black-600 font-semibold text-lg">Colocations</div>
