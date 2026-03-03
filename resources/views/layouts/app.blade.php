@@ -84,6 +84,7 @@
   </style>
 </head>
 <body class="min-h-screen">
+
   @include('partials.navbar')
 
   <main class="pt-28 pb-16">
@@ -94,5 +95,6 @@
   </main>
 
   @include('partials.footer')
+<script src="{{ asset('js/copy.js') }}"></script>
 </body>
 </html>
