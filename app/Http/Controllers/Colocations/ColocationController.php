@@ -52,8 +52,8 @@ class ColocationController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'min:4', 'max:20'],
-            'description' => ['nullable', 'string', 'min:6', 'max:300'],
+            'name' => ['required', 'string', 'min:7', 'max:20'],
+            'description' => ['nullable', 'string', 'min:9', 'max:300'],
         ]);
 
         $colocation = Colocation::create([
@@ -71,7 +71,8 @@ class ColocationController extends Controller
             'left_at' => null,
         ]);
 
-        return redirect()->route('colocations.index');
+        return redirect()->route('colocations.index')
+            ->with('success', 'Colocation créée.');
     }
 
     public function show(Request $request, Colocation $colocation)
@@ -82,13 +83,26 @@ class ColocationController extends Controller
             ->where('user_id', $userId)
             ->exists();
 
-        if (!$hasMembership) {
-            abort(403);
-        }
+        if (! $hasMembership) abort(404);
 
         $isCancelled = ($colocation->status === 'cancelled');
 
-        $members = $colocation->members()
+        $activeMembers = $colocation->members()
+            ->wherePivotNull('left_at')
+            ->get()
+            ->map(function ($u) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'email' => $u->email,
+                    'role' => $u->pivot->role,
+                    'reputation' => $u->reputation,
+                    'joined_at' => optional($u->pivot->joined_at)->format('Y-m-d'),
+                    'left_at' => null,
+                ];
+            });
+
+        $membersHistory = $colocation->members()
             ->get()
             ->map(function ($u) {
                 return [
@@ -104,7 +118,13 @@ class ColocationController extends Controller
 
         $expenses = collect([]);
 
-        return view('colocations.show', compact('colocation', 'members', 'expenses', 'isCancelled'));
+        return view('colocations.show', [
+            'colocation' => $colocation,
+            'activeMembers' => $activeMembers,
+            'membersHistory' => $membersHistory,
+            'expenses' => $expenses,
+            'isCancelled' => $isCancelled,
+        ]);
     }
 
     public function cancel(Request $request, Colocation $colocation)
@@ -117,7 +137,7 @@ class ColocationController extends Controller
             ->whereNull('left_at')
             ->exists();
 
-        if (!$isOwnerActive) {
+        if (! $isOwnerActive) {
             abort(403, 'Owner only.');
         }
 
@@ -147,6 +167,6 @@ class ColocationController extends Controller
             ->update(['left_at' => now()]);
 
         return redirect()->route('colocations.index')
-            ->with('status', 'Colocation annulée.');
+            ->with('success', 'Colocation annulée.');
     }
 }
