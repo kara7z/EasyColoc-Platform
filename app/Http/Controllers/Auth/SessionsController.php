@@ -40,7 +40,7 @@ class SessionsController extends Controller
                 ->onlyInput('email');
         }
 
-        return redirect()->intended('/');
+        return redirect()->intended('/dashboard');
     }
 
     public function destroy(Request $request)
@@ -52,4 +52,4 @@ class SessionsController extends Controller
 
         return redirect('/');
     }
-}//
+}

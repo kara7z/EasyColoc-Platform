@@ -36,6 +36,6 @@ class UserController extends Controller
 
         Auth::login($member);
 
-        return redirect('/');
+        return redirect('/dashboard');
     }
 }
