@@ -8,6 +8,8 @@ use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Auth\PasswordController;
 
 use App\Http\Controllers\Colocations\ColocationController;
+use App\Http\Controllers\Colocations\InvitationController;
+use App\Http\Controllers\Colocations\MemberController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,7 +21,7 @@ Route::view('/', 'index')->name('home');
 
 /*
 |--------------------------------------------------------------------------
-| Auth
+| Register / Login
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
@@ -30,13 +32,26 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [SessionsController::class, 'store'])->name('login.store');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Logout
+|--------------------------------------------------------------------------
+*/
 Route::delete('/logout', [SessionsController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
 /*
 |--------------------------------------------------------------------------
-| Middleware
+| Public invitation
+|--------------------------------------------------------------------------
+*/
+Route::get('/invitations/accept', [InvitationController::class, 'check'])
+    ->name('invitations.check');
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated Area
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'not_banned'])->group(function () {
@@ -54,15 +69,41 @@ Route::middleware(['auth', 'not_banned'])->group(function () {
     Route::post('/colocations', [ColocationController::class, 'store'])->name('colocations.store');
 
     Route::get('/colocations/{colocation}', [ColocationController::class, 'show'])->name('colocations.show');
-
     Route::patch('/colocations/{colocation}/cancel', [ColocationController::class, 'cancel'])->name('colocations.cancel');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Members
+    |--------------------------------------------------------------------------
+    */
+    Route::delete('/colocations/{colocation}/members/{user}', [MemberController::class, 'destroy'])
+        ->name('colocations.members.destroy');
+
+    Route::delete('/colocations/{colocation}/leave', [MemberController::class, 'leave'])
+        ->name('colocations.leave');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Invitations
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/colocations/{colocation}/invitations', [InvitationController::class, 'create'])
+        ->name('invitations.create');
+
+    Route::post('/colocations/{colocation}/invitations', [InvitationController::class, 'store'])
+        ->name('invitations.store');
+
+    Route::post('/invitations/accept', [InvitationController::class, 'accept'])
+        ->name('invitations.accept');
+
+    Route::post('/invitations/refuse', [InvitationController::class, 'refuse'])
+        ->name('invitations.refuse');
 
     /*
     |--------------------------------------------------------------------------
     | Expenses
     |--------------------------------------------------------------------------
     */
-
     Route::view('/colocations/{id}/expenses', 'expenses.index')->name('expenses.index');
 
     Route::middleware('colocation.not_cancelled')->group(function () {
@@ -77,7 +118,6 @@ Route::middleware(['auth', 'not_banned'])->group(function () {
     */
     Route::view('/categories', 'categories.index')->name('categories.index');
     Route::view('/categories/create', 'categories.create')->name('categories.create');
-    Route::view('/categories/{id}/edit', 'categories.edit')->name('categories.edit');
 
     /*
     |--------------------------------------------------------------------------
@@ -85,14 +125,6 @@ Route::middleware(['auth', 'not_banned'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::view('/settlements', 'settlements.index')->name('settlements.index');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Invitations
-    |--------------------------------------------------------------------------
-    */
-    Route::view('/invitations/create', 'invitations.create')->name('invitations.create');
-    Route::view('/invite/{token}', 'invitations.accept')->name('invitations.accept');
 
     /*
     |--------------------------------------------------------------------------
