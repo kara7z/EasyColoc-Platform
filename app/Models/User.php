@@ -42,6 +42,7 @@ class User extends Authenticatable
     public function colocations()
     {
         return $this->belongsToMany(Colocation::class, 'memberships')
+            ->using(Membership::class) 
             ->withPivot('role', 'joined_at', 'left_at')
             ->withTimestamps();
     }

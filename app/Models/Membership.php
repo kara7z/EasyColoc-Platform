@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class Membership extends Model
+class Membership extends Pivot
 {
     use HasFactory;
+
+    protected $table = 'memberships';
 
     protected $fillable = [
         'user_id',
@@ -21,7 +23,7 @@ class Membership extends Model
     {
         return [
             'joined_at' => 'datetime',
-            'left_at' => 'datetime',
+            'left_at'   => 'datetime',
         ];
     }
 
