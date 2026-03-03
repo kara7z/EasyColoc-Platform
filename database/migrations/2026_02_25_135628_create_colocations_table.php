@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->timestamp('cancelled_at')->nullable()->after('status');
+            $table->timestamp('cancelled_at')->nullable();
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
             $table->string('status')->default('active');
             $table->timestamps();

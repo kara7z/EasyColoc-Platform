@@ -18,10 +18,10 @@ return new class extends Migration {
                 ->constrained('users')
                 ->cascadeOnDelete();
 
-            $table->string('email');
-            $table->string('token', 64)->unique();
+            $table->string('email')->nullable();
+            $table->string('token', 9)->unique();
 
-            $table->string('status')->default('pending'); 
+            $table->string('status')->default('pending');
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('accepted_at')->nullable();
 
