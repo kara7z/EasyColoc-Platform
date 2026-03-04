@@ -75,4 +75,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Payment::class, 'to_user_id');
     }
+
+    public function getActiveColocationAttribute()
+    {
+        return $this->memberships()
+            ->whereNull('left_at')
+            ->whereHas('colocation', function ($q) {
+                $q->where('status', 'active');
+            })
+            ->latest('id')
+            ->with('colocation')
+            ->first()?->colocation;
+    }
 }

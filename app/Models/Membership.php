@@ -10,6 +10,7 @@ class Membership extends Pivot
     use HasFactory;
 
     protected $table = 'memberships';
+    public $incrementing = true;
 
     protected $fillable = [
         'user_id',
