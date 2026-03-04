@@ -3,18 +3,22 @@
 namespace App\Http\Controllers\Colocations;
 
 use App\Http\Controllers\Controller;
+use App\Mail\InvitationMail;
 use App\Models\Colocation;
 use App\Models\Invitation;
 use App\Models\Membership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class InvitationController extends Controller
 {
-    public function create(Colocation $colocation)
+    public function create(Request $request, Colocation $colocation)
     {
+        $this->ensureOwnerCanManageInvitations($request, $colocation);
+
         $invites = Invitation::where('colocation_id', $colocation->id)
             ->where('status', 'pending')
             ->latest()
@@ -28,6 +32,8 @@ class InvitationController extends Controller
 
     public function store(Request $request, Colocation $colocation)
     {
+        $this->ensureOwnerCanManageInvitations($request, $colocation);
+
         $request->validate([
             'email' => ['nullable', 'email'],
         ]);
@@ -46,6 +52,10 @@ class InvitationController extends Controller
         ]);
 
         $link = route('invitations.check', ['token' => $invite->token]);
+
+        if ($invite->email) {
+            Mail::to($invite->email)->send(new InvitationMail($invite, $link));
+        }
 
         return redirect()
             ->route('invitations.create', $colocation)
@@ -133,12 +143,14 @@ class InvitationController extends Controller
             return back()->withErrors(['token' => 'This invitation is not for your email.']);
         }
 
-        $alreadyActive = Membership::where('user_id', $user->id)
-            ->whereNull('left_at')
-            ->exists();
+        if (! $user->isAdmin()) {
+            $alreadyActive = Membership::where('user_id', $user->id)
+                ->whereNull('left_at')
+                ->exists();
 
-        if ($alreadyActive) {
-            return back()->withErrors(['token' => 'You already belong to an active colocation.']);
+            if ($alreadyActive) {
+                return back()->withErrors(['token' => 'You already belong to an active colocation.']);
+            }
         }
 
         DB::transaction(function () use ($user, $invite) {
@@ -187,5 +199,22 @@ class InvitationController extends Controller
         $inv->update(['status' => 'refused']);
 
         return redirect('/dashboard')->with('success', 'Invitation refusée');
+    }
+
+    private function ensureOwnerCanManageInvitations(Request $request, Colocation $colocation): void
+    {
+        if ($colocation->status === 'cancelled') {
+            abort(403, 'Colocation annulée.');
+        }
+
+        $isOwner = $colocation->memberships()
+            ->where('user_id', $request->user()->id)
+            ->where('role', 'owner')
+            ->whereNull('left_at')
+            ->exists();
+
+        if (! $isOwner) {
+            abort(403, 'Owner only.');
+        }
     }
 }

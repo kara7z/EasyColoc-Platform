@@ -5,21 +5,35 @@ namespace App\Http\Controllers\Colocations;
 use App\Http\Controllers\Controller;
 use App\Models\Colocation;
 use App\Models\Membership;
+use App\Services\BalanceService;
 use Illuminate\Http\Request;
 
 class ColocationController extends Controller
 {
+    public function __construct(private BalanceService $balanceService)
+    {
+    }
+
     public function index(Request $request)
     {
-        $userId = $request->user()->id;
+        $user = $request->user();
+        $userId = $user->id;
+        $isAdmin = (bool) $user->isAdmin;
 
-        $activeColocation = Colocation::query()
-            ->where('status', 'active')
-            ->whereHas('memberships', function ($q) use ($userId) {
+        $activeColocationsQuery = Colocation::query()
+            ->where('status', 'active');
+
+        if (! $isAdmin) {
+            $activeColocationsQuery->whereHas('memberships', function ($q) use ($userId) {
                 $q->where('user_id', $userId)->whereNull('left_at');
-            })
+            });
+        }
+
+        $activeColocations = $activeColocationsQuery
             ->latest()
-            ->first();
+            ->get();
+
+        $activeColocation = $activeColocations->first();
 
         $colocations = Colocation::query()
             ->whereHas('memberships', function ($q) use ($userId) {
@@ -28,7 +42,7 @@ class ColocationController extends Controller
             ->latest()
             ->get();
 
-        return view('colocations.index', compact('activeColocation', 'colocations'));
+        return view('colocations.index', compact('activeColocation', 'activeColocations', 'colocations', 'isAdmin'));
     }
 
     public function create()
@@ -38,17 +52,20 @@ class ColocationController extends Controller
 
     public function store(Request $request)
     {
-        $userId = $request->user()->id;
+        $user = $request->user();
+        $userId = $user->id;
 
-        $alreadyActive = Membership::query()
-            ->where('user_id', $userId)
-            ->whereNull('left_at')
-            ->exists();
+        if (! $user->isAdmin()) {
+            $alreadyActive = Membership::query()
+                ->where('user_id', $userId)
+                ->whereNull('left_at')
+                ->exists();
 
-        if ($alreadyActive) {
-            return back()->withErrors([
-                'name' => 'Vous avez déjà une colocation active.'
-            ])->withInput();
+            if ($alreadyActive) {
+                return back()->withErrors([
+                    'name' => 'Vous avez déjà une colocation active.'
+                ])->withInput();
+            }
         }
 
         $validated = $request->validate([
@@ -71,19 +88,39 @@ class ColocationController extends Controller
             'left_at' => null,
         ]);
 
+        $defaultCategories = [
+            ['name' => 'Loyer', 'color' => '#EF4444'],
+            ['name' => 'Électricité', 'color' => '#F59E0B'],
+            ['name' => 'Eau', 'color' => '#3B82F6'],
+            ['name' => 'Internet', 'color' => '#8B5CF6'],
+            ['name' => 'Courses', 'color' => '#10B981'],
+            ['name' => 'Ménage', 'color' => '#6366F1'],
+            ['name' => 'Autre', 'color' => '#6B7280'],
+        ];
+
+        foreach ($defaultCategories as $cat) {
+            \App\Models\Category::create([
+                'colocation_id' => $colocation->id,
+                'name' => $cat['name'],
+                'color' => $cat['color'],
+            ]);
+        }
+
         return redirect()->route('colocations.index')
             ->with('success', 'Colocation créée.');
     }
 
     public function show(Request $request, Colocation $colocation)
     {
-        $userId = $request->user()->id;
+        $user = $request->user();
+        $userId = $user->id;
+        $isAdminViewer = (bool) $user->isAdmin;
 
         $hasMembership = $colocation->memberships()
             ->where('user_id', $userId)
             ->exists();
 
-        if (! $hasMembership) abort(404);
+        if (! $hasMembership && ! $isAdminViewer) abort(404);
 
         $isCancelled = ($colocation->status === 'cancelled');
 
@@ -116,7 +153,21 @@ class ColocationController extends Controller
                 ];
             });
 
-        $expenses = collect([]);
+        $expenses = $colocation->expenses()
+            ->with(['payer', 'category'])
+            ->latest('spent_at')
+            ->limit(10)
+            ->get()
+            ->map(fn($e) => [
+                'id' => $e->id,
+                'payer_id' => $e->payer_id,
+                'title' => $e->title,
+                'amount' => number_format($e->amount, 2) . ' MAD',
+                'payer' => $e->payer->name,
+                'category' => $e->category->name ?? 'Sans catégorie',
+                'color' => $e->category->color ?? '#6B7280',
+                'date' => $e->spent_at->format('d/m/Y'),
+            ]);
 
         return view('colocations.show', [
             'colocation' => $colocation,
@@ -124,6 +175,7 @@ class ColocationController extends Controller
             'membersHistory' => $membersHistory,
             'expenses' => $expenses,
             'isCancelled' => $isCancelled,
+            'isAdminViewer' => $isAdminViewer,
         ]);
     }
 
@@ -154,6 +206,14 @@ class ColocationController extends Controller
 
         if ($colocation->status === 'cancelled') {
             return back();
+        }
+
+        $ownerNetBalance = $this->balanceService->getUserNetBalance($colocation, $userId);
+
+        if ($ownerNetBalance < -0.01) {
+            $request->user()->decrement('reputation');
+        } else {
+            $request->user()->increment('reputation');
         }
 
         $colocation->update([

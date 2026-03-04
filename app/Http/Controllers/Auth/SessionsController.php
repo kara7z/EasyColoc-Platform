@@ -22,7 +22,7 @@ class SessionsController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($validate)) {
+        if (! Auth::attempt($validate, $request->boolean('remember'))) {
             return back()
                 ->withErrors(['email' => 'Invalid infos'])
                 ->onlyInput('email');

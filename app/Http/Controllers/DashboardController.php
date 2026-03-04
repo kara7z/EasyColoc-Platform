@@ -11,6 +11,7 @@ class DashboardController extends Controller
     public function __construct(private BalanceService $balanceService)
     {
     }
+    
 
     public function index(Request $request)
     {
