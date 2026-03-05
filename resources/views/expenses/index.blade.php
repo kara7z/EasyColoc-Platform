@@ -9,13 +9,13 @@
       <p class="mt-1 text-sm">Historique et filtrage par mois.</p>
     </div>
     <div class="flex gap-3">
-      <a href="{{ url('/colocations/' . ($colocation['id'] ?? 1) . '/expenses/create') }}"><x-button-primary>Ajouter</x-button-primary></a>
-      <a href="{{ url('/colocations/' . ($colocation['id'] ?? 1)) }}"><x-button-outline>Retour colocation</x-button-outline></a>
+      <a href="{{ route('expenses.create', $colocation->id) }}"><x-button-primary>Ajouter</x-button-primary></a>
+      <a href="{{ route('colocations.show', $colocation) }}"><x-button-outline>Retour colocation</x-button-outline></a>
     </div>
   </div>
 
   <x-card class="mt-8 p-6">
-    <form method="GET" action="#" class="flex flex-col md:flex-row md:items-end gap-4">
+    <form method="GET" action="{{ route('expenses.index', $colocation->id) }}" class="flex flex-col md:flex-row md:items-end gap-4">
       <div>
         <label class="block text-sm font-medium text-black-600">Mois</label>
         <select name="month" class="mt-1 rounded-lg border border-gray-100 px-3 py-2 outline-none focus:border-orange-500">
@@ -30,7 +30,7 @@
         <select name="category" class="mt-1 rounded-lg border border-gray-100 px-3 py-2 outline-none focus:border-orange-500">
           <option value="">Toutes</option>
           @foreach(($categories ?? []) as $cat)
-            <option value="{{ $cat['id'] ?? '' }}">{{ $cat['name'] ?? '—' }}</option>
+            <option value="{{ $cat['id'] ?? '' }}" @selected(request('category') == ($cat['id'] ?? ''))>{{ $cat['name'] ?? '—' }}</option>
           @endforeach
         </select>
       </div>
@@ -53,21 +53,29 @@
         </thead>
         <tbody>
           @forelse(($expenses ?? []) as $e)
-            <tr class="border-b border-gray-100">
-              <td class="py-2 font-medium text-black-600">{{ $e['title'] ?? '—' }}</td>
+            <tr class="group">
+              <td class="py-2">
+                <div class="px-3 py-2 rounded-lg" style="background: linear-gradient(90deg, {{ $e['color'] ?? '#6B7280' }}15 0%, transparent 100%); border-left: 3px solid {{ $e['color'] ?? '#6B7280' }}">
+                  <span class="font-medium text-black-600">{{ $e['title'] ?? '—' }}</span>
+                </div>
+              </td>
               <td class="py-2">{{ $e['category'] ?? '—' }}</td>
               <td class="py-2">{{ $e['payer'] ?? '—' }}</td>
               <td class="py-2">{{ $e['amount'] ?? '0.00' }}</td>
               <td class="py-2">{{ $e['date'] ?? '—' }}</td>
               <td class="py-2 text-right">
-                <div class="inline-flex gap-3">
-                  <a href="{{ url('/expenses/' . ($e['id'] ?? 1) . '/edit') }}" class="text-orange-500 hover:underline">Edit</a>
-                  <form method="POST" action="{{ url('/expenses/' . ($e['id'] ?? 1)) }}">
-                    @csrf
-                    @method('DELETE')
-                    <button class="text-orange-500 hover:underline">Delete</button>
-                  </form>
-                </div>
+                @if(($e['payer_id'] ?? null) === auth()->id())
+                  <div class="inline-flex gap-3">
+                    <a href="{{ route('expenses.edit', $e['id']) }}" class="text-orange-500 hover:underline">Edit</a>
+                    <form method="POST" action="{{ route('expenses.destroy', $e['id']) }}" class="inline">
+                      @csrf
+                      @method('DELETE')
+                      <button class="text-orange-500 hover:underline" onclick="return confirm('Supprimer cette dépense?')">Delete</button>
+                    </form>
+                  </div>
+                @else
+                  <span class="text-xs text-slate-300">—</span>
+                @endif
               </td>
             </tr>
           @empty

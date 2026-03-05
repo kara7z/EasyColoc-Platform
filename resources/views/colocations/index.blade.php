@@ -6,7 +6,13 @@
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-bold text-black-600">Colocations</h1>
-      <p class="mt-1 text-sm">Une seule colocation active par utilisateur.</p>
+      <p class="mt-1 text-sm">
+        @if($isAdmin ?? false)
+          Vue globale des colocations actives.
+        @else
+          Vue de vos colocations actives.
+        @endif
+      </p>
     </div>
     <div class="flex gap-3">
       <a href="{{ url('/colocations/create') }}"><x-button-primary>Créer</x-button-primary></a>
@@ -18,26 +24,46 @@
     <x-card class="p-5">
       <div class="flex items-start justify-between gap-3">
         <div>
-          <div class="text-sm">Colocation active</div>
+          <div class="text-sm">Colocations actives</div>
 
-          <div class="mt-1 text-lg font-semibold text-black-600">
-            {{ $activeColocation?->name ?? 'Aucune' }}
-          </div>
+          @if(($activeColocations ?? collect())->isNotEmpty())
+            <div class="mt-2 space-y-3">
+              @foreach($activeColocations as $active)
+                <div class="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="text-base font-semibold text-black-600">{{ $active->name }}</div>
+                    <x-badge>{{ $active->status }}</x-badge>
+                  </div>
 
-          <div class="mt-1 text-sm">
-            Statut :
-            <x-badge>{{ $activeColocation?->status ?? '—' }}</x-badge>
-          </div>
+                  @if(!empty($active->description))
+                    <p class="mt-1 text-sm text-slate-600">{{ $active->description }}</p>
+                  @endif
+
+                  <div class="mt-1 text-xs text-slate-500">
+                    Créée le {{ optional($active->created_at)->format('Y-m-d') }}
+                  </div>
+
+                  <div class="mt-2">
+                    <a href="{{ route('colocations.show', $active) }}" class="text-orange-500 hover:underline">
+                      Ouvrir →
+                    </a>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          @else
+            <div class="mt-2 text-sm text-slate-500">
+              @if($isAdmin ?? false)
+                Aucune colocation active sur la plateforme.
+              @else
+                Vous n’avez pas de colocation active.
+              @endif
+            </div>
+          @endif
         </div>
-
-        @if($activeColocation)
-          <a href="{{ route('colocations.show', $activeColocation) }}" class="text-orange-500 hover:underline">
-            Ouvrir →
-          </a>
-        @endif
       </div>
 
-      @if(!$activeColocation)
+      @if(!$activeColocation && !($isAdmin ?? false))
         <div class="mt-4 text-sm">
           Vous n’avez pas de colocation active. Vous pouvez en créer une ou rejoindre via invitation.
         </div>
