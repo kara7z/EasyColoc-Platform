@@ -89,7 +89,7 @@ class ExpenseController extends Controller
         $categories = $colocation->categories;
         return view('expenses.create', compact('colocation', 'categories'));
     }
-
+    
     public function store(Request $request, $id)
     {
         $colocation = Colocation::findOrFail($id);
