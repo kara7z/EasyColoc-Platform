@@ -7,9 +7,13 @@ use App\Http\Controllers\Auth\SessionsController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Auth\PasswordController;
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Colocations\ColocationController;
 use App\Http\Controllers\Colocations\InvitationController;
 use App\Http\Controllers\Colocations\MemberController;
+use App\Http\Controllers\Finance\ExpenseController;
+use App\Http\Controllers\Finance\SettlementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,7 +61,7 @@ Route::get('/invitations/accept', [InvitationController::class, 'check'])
 Route::middleware(['auth', 'not_banned'])->group(function () {
 
     // Dashboard
-    Route::view('/dashboard', 'dashboard.index')->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     /*
     |--------------------------------------------------------------------------
@@ -87,11 +91,13 @@ Route::middleware(['auth', 'not_banned'])->group(function () {
     | Invitations
     |--------------------------------------------------------------------------
     */
-    Route::get('/colocations/{colocation}/invitations', [InvitationController::class, 'create'])
+    Route::middleware('owner')->group(function () {
+        Route::get('/colocations/{colocation}/invitations', [InvitationController::class, 'create'])
         ->name('invitations.create');
 
-    Route::post('/colocations/{colocation}/invitations', [InvitationController::class, 'store'])
+        Route::post('/colocations/{colocation}/invitations', [InvitationController::class, 'store'])
         ->name('invitations.store');
+    });
 
     Route::post('/invitations/accept', [InvitationController::class, 'accept'])
         ->name('invitations.accept');
@@ -104,11 +110,14 @@ Route::middleware(['auth', 'not_banned'])->group(function () {
     | Expenses
     |--------------------------------------------------------------------------
     */
-    Route::view('/colocations/{id}/expenses', 'expenses.index')->name('expenses.index');
+    Route::get('/colocations/{id}/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
 
     Route::middleware('colocation.not_cancelled')->group(function () {
-        Route::view('/colocations/{id}/expenses/create', 'expenses.create')->name('expenses.create');
-        Route::view('/expenses/{id}/edit', 'expenses.edit')->name('expenses.edit');
+        Route::get('/colocations/{id}/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+        Route::post('/colocations/{id}/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
+        Route::patch('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
     });
 
     /*
@@ -116,22 +125,32 @@ Route::middleware(['auth', 'not_banned'])->group(function () {
     | Categories
     |--------------------------------------------------------------------------
     */
-    Route::view('/categories', 'categories.index')->name('categories.index');
-    Route::view('/categories/create', 'categories.create')->name('categories.create');
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+    Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::patch('/categories/{category}', [CategoryController::class, 'update']);
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
     /*
     |--------------------------------------------------------------------------
     | Settlements
     |--------------------------------------------------------------------------
     */
-    Route::view('/settlements', 'settlements.index')->name('settlements.index');
+    Route::get('/settlements', [SettlementController::class, 'index'])->name('settlements.index');
+    Route::post('/settlements/mark-paid', [SettlementController::class, 'markPaid'])->name('settlements.markPaid');
 
     /*
     |--------------------------------------------------------------------------
     | Admin
     |--------------------------------------------------------------------------
     */
-    Route::view('/admin', 'admin.index')->name('admin.index');
+    Route::middleware('admin')->group(function () {
+        Route::get('/admin', [\App\Http\Controllers\Admin\AdminController::class, 'index'])->name('admin.index');
+        Route::patch('/admin/users/{user}/ban', [\App\Http\Controllers\Admin\AdminController::class, 'ban'])->name('admin.users.ban');
+        Route::patch('/admin/users/{user}/unban', [\App\Http\Controllers\Admin\AdminController::class, 'unban'])->name('admin.users.unban');
+    });
 
     /*
     |--------------------------------------------------------------------------
