@@ -1,59 +1,325 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# EasyColoc — Plateforme Web de Gestion de Colocation
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+EasyColoc est une application web de gestion de colocation qui permet de suivre les dépenses communes et de répartir automatiquement les dettes entre membres.
+L’objectif est d’éviter les calculs manuels et d’avoir une vision claire de **« qui doit quoi à qui »**.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Table des Matières
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- [Screenshots](#screenshots)
+- [Contexte du Projet](#contexte-du-projet)
+- [Objectifs](#objectifs)
+- [Périmètre Réalisé](#périmètre-réalisé)
+- [Acteurs et Rôles](#acteurs-et-rôles)
+- [Fonctionnalités Clés](#fonctionnalités-clés)
+- [User Stories](#user-stories)
+- [Scénarios d’Implémentation](#scénarios-dimplémentation)
+- [Stack Technique](#stack-technique)
+- [Installation et Lancement](#installation-et-lancement)
+- [Livrables](#livrables)
+- [Méthodes d’Évaluation](#méthodes-dévaluation)
+- [Critères de Performance](#critères-de-performance)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Screenshots
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Capture d'écran de l'application
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+![EasyColoc screenshot](preview/EasyColoc%20screenshot.png)
 
-## Laravel Sponsors
+### Diagramme des cas d’utilisations
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+![Diagramme des cas d’utilisations](preview/Use%20Case%20Diagram.png)
 
-### Premium Partners
+### Diagramme de classes
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+![Diagramme de classes](preview/diagram-class-uml.png)
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Contexte du Projet
 
-## Code of Conduct
+### Version actuelle permet
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- Création de colocations et gestion des membres
+- Invitation via lien/token (avec envoi email)
+- Ajout et suppression de dépenses avec catégories
+- Calcul automatique des soldes et remboursements simplifiés
+- Enregistrement des paiements via **« Marquer payé »**
+- Système de réputation selon le comportement financier
+- Administration globale (statistiques, bannissement/débannissement)
+- Filtrage des dépenses par mois dans la page d’une colocation
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Objectifs
 
-## License
+### 1) Objectifs fonctionnels
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Gérer des colocations (création, annulation, départ/retrait de membres)
+- Suivre les dépenses partagées
+- Calculer automatiquement les soldes individuels
+- Afficher une vue simplifiée des remboursements
+
+### 2) Objectifs techniques
+
+- Architecture : monolithique MVC Laravel
+- SGBD : MySQL / PostgreSQL via migrations
+- ORM : Eloquent (`hasMany`, `belongsToMany`, pivot table)
+- Authentification : Laravel Breeze / Jetstream
+- Système de rôles : Global Admin / Owner / Member
+
+---
+
+## Périmètre Réalisé
+
+### Inclus
+
+- Authentification et profil utilisateur
+- Premier utilisateur inscrit promu admin global automatiquement
+- Gestion des colocations (`create`, `show`, `update`, `destroy`, `cancel`)
+- Invitations par token avec acceptation/refus
+- Restriction : une seule colocation active par utilisateur
+- Gestion des dépenses (montant, date, catégorie, payeur)
+- Gestion des catégories
+- Calcul des balances et vue « qui doit à qui »
+- Paiements simples « Marquer payé »
+- Système de réputation (`+1 / -1`)
+- Dashboard admin global (utilisateurs, colocations, dépenses, bannis)
+- Filtre des dépenses par mois (défaut : tous les mois)
+
+### Hors périmètre (Bonus)
+
+- Paiement Stripe
+- Notifications en temps réel
+- Calendrier
+- Export de données
+
+---
+
+## Acteurs et Rôles
+
+- **Member** : membre d’une colocation
+- **Owner** : membre administrateur de sa colocation (créateur initial)
+- **Global Admin** : administrateur plateforme (statistiques globales + modération utilisateurs)
+
+### Permissions principales
+
+- **Global Admin**
+  - Accès statistiques globales (colocations, utilisateurs, dépenses)
+  - Bannir / débannir des utilisateurs
+  - Peut aussi être Owner ou Member dans une colocation
+
+- **User (standard)**
+  - Peut créer une colocation (devient Owner)
+  - Peut rejoindre une colocation existante (devient Member)
+
+---
+
+## Fonctionnalités Clés
+
+### Utilisateurs
+
+- Inscription, connexion, gestion de profil
+- Promotion automatique du premier inscrit en admin global
+- Blocage des utilisateurs bannis (déconnexion auto + refus d’accès)
+
+### Colocations
+
+- Création de colocation avec owner automatique
+- Invitation par email/token
+- Une seule colocation active par utilisateur
+- Départ d’un membre (`left_at`)
+- Annulation colocation (`status = cancelled`)
+
+### Dépenses
+
+- Ajout d’une dépense (titre, montant, date, catégorie, payeur)
+- Historique des dépenses
+- Statistiques par catégorie et mensuelles
+- Filtre des dépenses par mois
+
+### Balances et dettes
+
+- Calcul : total payé, part individuelle, solde
+- Vue synthétique « qui doit à qui »
+- Réduction des dettes via enregistrement des paiements
+
+### Réputation
+
+- Départ/annulation avec dette : `-1`
+- Départ/annulation sans dette : `+1`
+- Cas spécifique : si un owner retire un membre ayant une dette, la dette est imputée à l’owner (ajustement interne)
+
+### Paiements simples
+
+- Action **« Marquer payé »** depuis la liste des settlements
+
+---
+
+## User Stories
+
+### Member
+
+- S’inscrire et se connecter
+- Rejoindre une colocation via invitation
+- Voir membres, rôles et réputation
+- Ajouter une dépense
+- Voir son solde et « qui doit à qui »
+- Marquer un paiement
+- Quitter une colocation (sauf owner)
+
+### Owner
+
+- Créer une colocation
+- Inviter des membres
+- Retirer un membre (sauf owner)
+- Gérer les catégories
+- Annuler la colocation
+
+### Global Admin
+
+- Voir les statistiques globales
+- Bannir / débannir des utilisateurs
+
+---
+
+## Scénarios d’Implémentation
+
+### Scénario 1 — Invitation
+
+1. L’owner envoie une invitation (token unique + email).
+2. L’utilisateur invité accepte ou refuse.
+3. Vérification email = invitation.
+4. Si utilisateur déjà dans une colocation active : blocage.
+5. Sinon : ajout comme member.
+
+### Scénario 2 — Dépense commune
+
+1. Ajout d’une dépense (payeur, montant, date, catégorie).
+2. Recalcul des soldes des membres actifs.
+3. Affichage de la synthèse des remboursements.
+
+### Scénario 3 — Départ / retrait avec dette
+
+1. Si membre quitte avec dette : pénalité réputation + ajustements.
+2. Si owner retire membre avec dette : dette imputée à l’owner.
+
+### Scénario 4 — Blocage multi-colocation active
+
+1. Création d’une nouvelle colocation bloquée si membership actif existe déjà.
+2. Acceptation invitation bloquée dans le même cas.
+
+---
+
+## Stack Technique
+
+- **Framework** : Laravel 12
+- **Langage** : PHP 8+
+- **Architecture** : MVC monolithique
+- **Base de données** : MySQL / PostgreSQL
+- **ORM** : Eloquent
+- **Frontend** : Blade + Tailwind CSS + JavaScript natif
+- **Versionning** : Git / GitHub
+
+---
+
+## Installation et Lancement
+
+### Prérequis
+
+```bash
+PHP >= 8.2
+Composer
+Node.js + npm
+MySQL ou PostgreSQL
+```
+
+### Installation
+
+```bash
+git clone <URL_DU_REPO>
+cd EasyColoc-Platform
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+```
+
+Configurer la base dans `.env`, puis :
+
+```bash
+php artisan migrate
+php artisan db:seed
+php artisan serve
+npm run dev
+```
+
+Application disponible sur :
+
+- `http://127.0.0.1:8000`
+
+---
+
+## Diagrammes UML
+
+- Diagramme des cas d’utilisations : `preview/Use Case Diagram.png`
+- Diagramme de classes : `preview/diagram-class-uml.png`
+
+---
+
+## Livrables
+
+- Lien du repository GitHub du projet
+- Lien de la présentation
+- Diagrammes UML :
+  - Diagramme des cas d’utilisations
+  - Diagramme de classes
+
+---
+
+## Méthodes d’Évaluation
+
+Durée totale : **40 min**
+
+- Démonstration et défense publique du travail
+- ~12 min : démonstration fonctionnelle + explication du code source
+- 8 min : code review + questions culture web
+- 20 min : mise en situation
+
+---
+
+## Critères de Performance
+
+- Respect strict architecture MVC
+- Séparation claire logique métier / contrôleurs / vues Blade
+- Principes OOP appliqués correctement
+- Code lisible, maintenable, organisé
+- Respect conventions Laravel
+- Migrations et versioning BDD maîtrisés
+- Relations Eloquent correctes (`hasMany`, `belongsToMany`, pivot)
+- Requêtes préparées via Eloquent / Query Builder (anti SQL injection)
+- Modélisation relationnelle correcte (FK + contraintes)
+- Protection CSRF (`@csrf`)
+- Protection XSS (échappement Blade `{{ }}`)
+- Validation serveur (Form Request / `validate()`)
+- Validation et filtrage des entrées
+- Gestion des autorisations selon rôles
+- Validation client HTML5 (`required`, `type`, `pattern`, ...)
+- JS natif pour améliorer UX
+- Messages d’erreurs clairs
+- Interface responsive (mobile/tablette/desktop)
+- Utilisation Blade + Tailwind CSS
+- Versionning Git/GitHub
+- Commits clairs et structurés
+
+---
+
+## Planning
+
+- Travail : individuel
+- Durée : 5 jours
+- Date de lancement : 23/02/2026
+- Date limite de soumission : 27/02/2026
