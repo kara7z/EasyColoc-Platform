@@ -4,6 +4,7 @@ use App\Http\Middleware\BanneMiddleware;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\OwnerMiddleware;
 use App\Http\Middleware\MemberMiddleware;
+use App\Http\Middleware\EnsureColocationNotCancelled;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin'  => AdminMiddleware::class,
             'owner'  => OwnerMiddleware::class,
             'member' => MemberMiddleware::class,
+            'colocation.not_cancelled' => EnsureColocationNotCancelled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {})
